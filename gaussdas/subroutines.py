@@ -4,11 +4,18 @@ class Decision_Tree(object):
     pass
 
 class Subroutines(object):
-    pass
+    def __init__(self):
+        self._keys = {}
+        self._keys['Zero-point correction'] = thermo_chem
+        
 
-class inline_subroutine(object):
-    pass
 
-class multiline_subroutine(object):
+    def find_token_indices(self, line):
+        for char in line:
+            pass
+            
+def thermo_chem(filestream):
+    '''
+    Gather all thermochemistry data in the event of successful freq
+    '''
     pass
-

@@ -3,6 +3,8 @@ import os.path
 import pandas
 from subroutines import Subroutines
 
+# Might as well utilize a global routines files
+routines = Subroutines()
 
 class Processor(object):
     '''
@@ -11,7 +13,6 @@ class Processor(object):
     Gaussian output to the Processor, and get back a pandas dataframe
     of all relevent chemical data
     '''
-
     def __init__(self):
         self.indices = []
 
@@ -19,9 +20,7 @@ class Processor(object):
         df = None
         path = os.path.abspath(file_path)
 
-        routines = Subroutines
-
-        self.indices = get_indices(path)
+        self.indices = self._get_indices(path)
         print(self.indices) #DELETE
         
         return df
@@ -36,7 +35,7 @@ class Processor(object):
             for i, line in enumerate(infile):
                 char_inds, func_call = routines.find_token_indices(line)
                 for cind in char_inds:
-                    cind = [i, cind]
+                    cind = [i, cind, func_call]
 
                 for each in char_inds:
                     indices.append(each)
