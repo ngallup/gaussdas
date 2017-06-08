@@ -1,7 +1,10 @@
 import pandas
+import numpy as np
 
 class Subroutines(object):
     def __init__(self):
+        # A more modular scheme would be nice in the future.  Maybe loading
+        # in all classes/functions from a seperate file upon instantiation
         self._keys = {}
         self._keys['Zero-point correction'] = thermo_chem
         
@@ -38,11 +41,40 @@ class Subroutines(object):
             df = new_df
 
         return infile, df
+    
+def add_pandas_fields(df, data, overwrite=True):
+    '''
+    Add fields and data to the DataFrame.  And overwrite=false method has
+    not been writen yet
+    '''
+    for field in data: df[field[0]] = pandas.Series(field[1])
+    #return df
             
 def thermo_chem(filestream, line, df):
     '''
     Gather all thermochemistry data in the event of successful freq
     '''
-    print(line)
-    print("I'm the thermo_chem function")
-    pass
+    fields = []
+    fields.append(['zpe_corr', None])
+    fields.append(['e_corr', None])
+    fields.append(['h_corr', None])
+    fields.append(['g_corr', None])
+    fields.append(['E', None])
+    fields.append(['H', None])
+    fields.append(['G', None])
+
+    # The next 7 lines contain all the other thermo data
+    lines = [line]
+    for i in range(7):
+        lines.append(filestream.next())
+    for field, line in zip(fields, lines):
+        if 'Zero-point' in line: # ZPE line needs special handling
+            field[1] = np.float64(line.split()[-2])
+        else: 
+            field[1] = np.float64(line.split()[-1])
+        print(field, line) #DELETE
+    print(fields) #DELETE
+
+    df = add_pandas_fields(df, fields)
+    
+    return filestream, df
