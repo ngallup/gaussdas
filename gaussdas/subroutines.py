@@ -37,7 +37,7 @@ class Subroutines(object):
         infile, new_df = func_call(infile, line, df)
 
         # Check if function is void type or making changes to the DataFrame
-        if new_df != None:
+        if not isinstance(df, pandas.DataFrame):
             df = new_df
 
         return infile, df
@@ -48,7 +48,7 @@ def add_pandas_fields(df, data, overwrite=True):
     not been writen yet
     '''
     for field in data: df[field[0]] = pandas.Series(field[1])
-    #return df
+    return df
             
 def thermo_chem(filestream, line, df):
     '''
