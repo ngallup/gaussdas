@@ -3,4 +3,8 @@ import sys
 from processor import Processor
 
 parser = Processor()
-print(parser.get_df(sys.argv[1]))
+df = parser.get_df(sys.argv[1])
+
+print('Test output')
+print(df)
+print(df.info())

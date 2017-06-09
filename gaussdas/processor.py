@@ -2,6 +2,7 @@ import subroutines
 import os.path
 import pandas
 from subroutines import Subroutines
+from subroutines import add_pandas_fields
 
 class Processor(object):
     '''
@@ -12,17 +13,17 @@ class Processor(object):
     '''
     def __init__(self):
         self.indices = []
-        self.routines = Subroutines()
+        self.routines = Subroutines() 
 
     def get_df(self, file_path, df=None):
-        if df == None:
+        if df == None: 
             df = pandas.DataFrame()
 
         path = os.path.abspath(file_path)
 
-        #self.indices = self._get_indices(path)
-        #print(self.indices) #DELETE
         df_copy = df.copy()
+        df_copy = add_pandas_fields(df_copy, ['File', path])
+
         new_df = self._search_and_parse(path, df_copy)
         
         return new_df 

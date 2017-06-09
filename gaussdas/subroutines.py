@@ -47,9 +47,13 @@ def add_pandas_fields(df, data, overwrite=True):
     Add fields and data to the DataFrame.  And overwrite=false method has
     not been writen yet
     '''
-    for field in data: df[field[0]] = pandas.Series(field[1])
+    if isinstance(data[0], list):
+        for field in data: df[field[0]] = pandas.Series(field[1])
+        return df
+    
+    df[data[0]] = pandas.Series(data[1])
     return df
-            
+
 def thermo_chem(filestream, line, df):
     '''
     Gather all thermochemistry data in the event of successful freq
