@@ -1,5 +1,6 @@
 import pandas
 import numpy as np
+import sys
 
 class Subroutines(object):
     def __init__(self):
@@ -39,7 +40,9 @@ class Subroutines(object):
 
         # Check if function is void type or making changes to the DataFrame
         if not isinstance(df, pandas.DataFrame):
-            df = new_df
+            new_df = pandas.DataFrame()
+
+        df = new_df
 
         return infile, df
     
@@ -56,6 +59,27 @@ def add_pandas_fields(df, data, overwrite=True):
         return df
     
     df[data[0]] = pandas.Series(data[1])
+    return df
+
+def add_pandas_series(df, data, overwrite=True):
+    '''
+    Add some kind of series data to the DataFrame.
+    '''
+    tmp_df = pandas.DataFrame(data)
+    print('------ADD PANDAS SERIES') #DELETE
+    print(df)
+
+    for col in tmp_df.columns:
+        series_df = pandas.DataFrame(tmp_df[col])
+        if col in df.columns:
+            # This will need more testing
+            if overwrite == False:
+                print("DON'T OVERWRITE ME!!!!") #delete
+                continue
+            df[col] = series_df
+        else:
+            df = pandas.concat([df, series_df], axis=1)
+        
     return df
 
 def thermo_chem(filestream, line, df):
@@ -80,8 +104,6 @@ def thermo_chem(filestream, line, df):
             field[1] = np.float64(line.split()[-2])
         else: 
             field[1] = np.float64(line.split()[-1])
-        print(field, line) #DELETE
-    print(fields) #DELETE
 
     df = add_pandas_fields(df, fields)
     
@@ -91,22 +113,37 @@ def atoms_charge_mult(filestream, line, df):
     '''
     Get initial atom data, charge, and multiplicity for the system
     '''
-
+    print('----------ATOMS CHARGE MULT IS CALLED')  #delete
+    #print('LINE: ', line) #DELETE
     fields = {}
     fields['natoms'] = None
-    fields['atom list'] = []
-    fields['frozen'] = []
     fields['charge'] = None
     fields['multiplicity'] = None
+    
+    series = {}
+    series['atom list'] = []
+    series['frozen'] = []
 
     # Initial line will have charge and mult data
     elems = line.split()
     charge = elems[2]
     mult = elems[5]
+    fields['charge'] = np.int(charge)
+    fields['multiplicity'] = np.int(mult)
 
-    print(fields) #DELETE
+    # Scan for atom data, terminating at blank line or at instance of non atom
+    line = filestream.next()
+    if 'Redundant' in line: line = filestream.next() #When redundant coords
+    line_split = line.split()
+    while line_split != [] and len(line_split[0]) < 3: #Check if atom or empty
+        series['atom list'].append(line_split[0])
+        series['frozen'].append(line_split[1])
+        line = filestream.next()
+        line_split = line.split()
+
+    fields['natoms'] = len(series['atom list'])
+
     df = add_pandas_fields(df, fields)
-    print('Atoms charge mult df') #DELETE
-    print(df) #DELETE
+    df = add_pandas_series(df, series, overwrite=False)
 
     return filestream, df
