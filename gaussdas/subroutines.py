@@ -7,6 +7,7 @@ class Subroutines(object):
         # in all classes/functions from a seperate file upon instantiation
         self._keys = {}
         self._keys['Zero-point correction'] = thermo_chem
+        self._keys['Charge = '] = atoms_charge_mult
         
     def find_token_indices(self, line):
         #for char in line:
@@ -47,7 +48,10 @@ def add_pandas_fields(df, data, overwrite=True):
     Add fields and data to the DataFrame.  And overwrite=false method has
     not been writen yet
     '''
-    if isinstance(data[0], list):
+    if isinstance(data, dict):
+        for field in data: df[field] = pandas.Series(data[field])
+        return df
+    elif isinstance(data[0], list):
         for field in data: df[field[0]] = pandas.Series(field[1])
         return df
     
@@ -81,4 +85,28 @@ def thermo_chem(filestream, line, df):
 
     df = add_pandas_fields(df, fields)
     
+    return filestream, df
+
+def atoms_charge_mult(filestream, line, df):
+    '''
+    Get initial atom data, charge, and multiplicity for the system
+    '''
+
+    fields = {}
+    fields['natoms'] = None
+    fields['atom list'] = []
+    fields['frozen'] = []
+    fields['charge'] = None
+    fields['multiplicity'] = None
+
+    # Initial line will have charge and mult data
+    elems = line.split()
+    charge = elems[2]
+    mult = elems[5]
+
+    print(fields) #DELETE
+    df = add_pandas_fields(df, fields)
+    print('Atoms charge mult df') #DELETE
+    print(df) #DELETE
+
     return filestream, df
