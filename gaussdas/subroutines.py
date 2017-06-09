@@ -66,8 +66,6 @@ def add_pandas_series(df, data, overwrite=True):
     Add some kind of series data to the DataFrame.
     '''
     tmp_df = pandas.DataFrame(data)
-    print('------ADD PANDAS SERIES') #DELETE
-    print(df)
 
     for col in tmp_df.columns:
         series_df = pandas.DataFrame(tmp_df[col])
@@ -113,8 +111,6 @@ def atoms_charge_mult(filestream, line, df):
     '''
     Get initial atom data, charge, and multiplicity for the system
     '''
-    print('----------ATOMS CHARGE MULT IS CALLED')  #delete
-    #print('LINE: ', line) #DELETE
     fields = {}
     fields['natoms'] = None
     fields['charge'] = None
@@ -134,12 +130,14 @@ def atoms_charge_mult(filestream, line, df):
     # Scan for atom data, terminating at blank line or at instance of non atom
     line = filestream.next()
     if 'Redundant' in line: line = filestream.next() #When redundant coords
-    line_split = line.split()
+    delimiter = None
+    if ',' in line: delimiter = ','
+    line_split = line.lstrip().rstrip().split(delimiter)
     while line_split != [] and len(line_split[0]) < 3: #Check if atom or empty
         series['atom list'].append(line_split[0])
         series['frozen'].append(line_split[1])
         line = filestream.next()
-        line_split = line.split()
+        line_split = line.lstrip().rstrip().split(delimiter)
 
     fields['natoms'] = len(series['atom list'])
 
