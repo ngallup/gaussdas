@@ -12,6 +12,13 @@ class Iteration(object):
     def __init__(self):
         self.natoms = None
         self.niter = 0
+        self._nbo_bits = 0b00 # 00
+
+    # Some bitwise getters and setters
+    def get_nbo_bits(self):
+        return self._nbo_bits
+    def set_nbo_bits(self, new_bits):
+        self._nbo_bits = new_bits
      
 class Subroutines(object):
     def __init__(self):
@@ -20,7 +27,11 @@ class Subroutines(object):
         self._keys = {}
         self._keys['Zero-point correction'] = self.thermo_chem
         self._keys['Charge = '] = self.atoms_charge_mult
-        self.iteration = Iteration()
+        self._keys['N A T U R A L   A T O M I C   O R B I T A L   A N D'] = \
+            self.found_nbo_header
+        self._keys['Atom  No    Charge         Core'] = self.npa
+        
+        self._iteration = Iteration()
         
     def find_token_indices(self, line):
         pass
@@ -102,7 +113,8 @@ class Subroutines(object):
         fields['charge'] = np.int(charge)
         fields['multiplicity'] = np.int(mult)
     
-        # Scan for atom data, terminating at blank line or at instance of non atom
+        # Scan for atom data, term. at blank line or at instance of non atom
+        # Need to handle both explicit atom info, and internal redundant
         line = filestream.next()
         if 'Redundant' in line: line = filestream.next() #When redundant coords
         delimiter = None
@@ -115,10 +127,54 @@ class Subroutines(object):
             line_split = line.lstrip().rstrip().split(delimiter)
     
         fields['natoms'] = len(series['atom list'])
+
+        self._iteration.natoms = fields['natoms']
     
         df = add_pandas_fields(df, fields)
         df = add_pandas_series(df, series, overwrite=False)
     
+        return filestream, df
+
+    def found_nbo_header(self, filestream, line, df):
+        '''
+        For triggering some bit logic contained in the Iteration class so that
+        NPA charges can be correctly parsed
+        '''
+        old_bits = self._iteration.get_nbo_bits()
+        new_bits = 0b10
+        self._iteration.set_nbo_bits(new_bits)
+
+        print(old_bits) #DELETE
+        print(new_bits) #DELETE
+
+        return filestream, df
+    
+    def npa(self, filestream, line, df):
+        '''
+        For parsing out NPA charges from the file.  Relies on some bitwise
+        logic to correctly grab the sum NPA charges, and not the alpha or beta
+        specific charges.
+        '''
+        old_bits = self._iteration.get_nbo_bits()
+        if not old_bits == 0b10:
+            print('ALPHA OR BETA FOUND') #DELETE
+            return filestream, df
+
+        new_bits = old_bits | 0b11
+        self._iteration.set_nbo_bits(new_bits)
+
+        print('FOUND NPA CHARGES')
+        npa_df = pandas.DataFrame(columns=line.split())
+
+        # Need to dump first line to get past header and into atom data
+        line = filestream.next()
+        for _ in range(self._iteration.natoms):
+            line = filestream.next()
+            print(line) #DELETE
+            row_vals = line.split()
+            npa_df['Atom'] = npa_df['Atom'].append(row_vals[0])
+
+        print(npa_df) #DELETE
         return filestream, df
 
 def add_pandas_fields(df, data, overwrite=True):
