@@ -16,7 +16,7 @@ class Processor(object):
         self.routines = Subroutines() 
 
     def get_df(self, file_path, df=None):
-        if df == None: 
+        if not isinstance(df, pandas.DataFrame): 
             df = pandas.DataFrame()
 
         path = os.path.abspath(file_path)
