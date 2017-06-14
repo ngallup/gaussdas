@@ -149,7 +149,7 @@ class Subroutines(object):
 
         return filestream, df
     
-    def npa(self, filestream, line, df):
+    def npa(self, filestream, line, df, overwrite=True):
         '''
         For parsing out NPA charges from the file.  Relies on some bitwise
         logic to correctly grab the sum NPA charges, and not the alpha or beta
@@ -172,20 +172,26 @@ class Subroutines(object):
         for col in cols:
             col_dict[col] = []
         print(cols) #DELETE
-        npa_df = pandas.DataFrame(columns=cols)
 
         # Need to dump first line to get past header and into atom data
+        # Keep big dict object incase I want the extra data later. Can easily
+        # converte to DataFrame if I want to change data handling
         line = filestream.next()
         for i in range(self._iteration.natoms):
             line = filestream.next()
-            print(line) #DELETE
             row_vals = line.split()
             for col, val in zip(cols, row_vals):
                 col_dict[col].append(val)
             
-        npa_df = pandas.DataFrame(col_dict)
+        # Need to rename charge column to prevent clash with system charge col
+        new_str = 'npa charges'
+        df = add_pandas_series(
+            df, 
+            {new_str : np.float64(col_dict['Charge'])}, 
+            overwrite=overwrite
+        )
+        #print(df) #DELETE
 
-        print(npa_df) #DELETE
         return filestream, df
 
 def add_pandas_fields(df, data, overwrite=True):
