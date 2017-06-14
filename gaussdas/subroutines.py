@@ -155,24 +155,35 @@ class Subroutines(object):
         logic to correctly grab the sum NPA charges, and not the alpha or beta
         specific charges.
         '''
+        spin_mask = 0b01
+        header_mask = 0b10
         old_bits = self._iteration.get_nbo_bits()
-        if not old_bits == 0b10:
+
+        if old_bits & spin_mask == 0b01:
             print('ALPHA OR BETA FOUND') #DELETE
             return filestream, df
 
-        new_bits = old_bits | 0b11
+        new_bits = old_bits | spin_mask
         self._iteration.set_nbo_bits(new_bits)
 
-        print('FOUND NPA CHARGES')
-        npa_df = pandas.DataFrame(columns=line.split())
+        print('FOUND NPA CHARGES') #DELETE
+        cols = line.split()
+        col_dict = {}
+        for col in cols:
+            col_dict[col] = []
+        print(cols) #DELETE
+        npa_df = pandas.DataFrame(columns=cols)
 
         # Need to dump first line to get past header and into atom data
         line = filestream.next()
-        for _ in range(self._iteration.natoms):
+        for i in range(self._iteration.natoms):
             line = filestream.next()
             print(line) #DELETE
             row_vals = line.split()
-            npa_df['Atom'] = npa_df['Atom'].append(row_vals[0])
+            for col, val in zip(cols, row_vals):
+                col_dict[col].append(val)
+            
+        npa_df = pandas.DataFrame(col_dict)
 
         print(npa_df) #DELETE
         return filestream, df
