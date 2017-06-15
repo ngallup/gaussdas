@@ -20,9 +20,12 @@ class Processor(object):
             df = pandas.DataFrame()
 
         path = os.path.abspath(file_path)
+        fileout = os.path.basename(path)
 
         df_copy = df.copy()
-        df_copy = add_pandas_fields(df_copy, ['File', path])
+        df_copy = add_pandas_fields(df_copy, ['file', fileout])
+        df_copy = add_pandas_fields(df_copy, ['file path', path])
+        df_copy.set_index('file', inplace=True) # This should probably be changed to 'file path' eventually
 
         new_df = self._search_and_parse(path, df_copy)
         

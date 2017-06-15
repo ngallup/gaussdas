@@ -27,9 +27,9 @@ class Subroutines(object):
         self._keys = {}
         self._keys['Zero-point correction'] = self.thermo_chem
         self._keys['Charge = '] = self.atoms_charge_mult
-        self._keys['N A T U R A L   A T O M I C   O R B I T A L   A N D'] = \
-            self.found_nbo_header
-        self._keys['Atom  No    Charge         Core'] = self.npa
+        #self._keys['N A T U R A L   A T O M I C   O R B I T A L   A N D'] = \
+        #    self.found_nbo_header
+        #self._keys['Atom  No    Charge         Core'] = self.npa
         
         self._iteration = Iteration()
         
@@ -190,23 +190,59 @@ class Subroutines(object):
             {new_str : np.float64(col_dict['Charge'])}, 
             overwrite=overwrite
         )
-        #print(df) #DELETE
+
+        ### Multidimensional add
+        #data = {new_str : col_dict}
+        #npa_df = pandas.DataFrame(data)
+        iterables = [['npa analysis'], [key for key in col_dict]]
+        index = pandas.MultiIndex.from_product(iterables)
+        print(index) #DELETE
+        npa_df = pandas.DataFrame(index=range(self._iteration.natoms), columns=index)
+        for key in col_dict: 
+            npa_df['npa analysis'][key] = pandas.Series(col_dict[key])
+        print(npa_df) #DELETE
+        print(npa_df.ndim) #DELETE
+        #print(npa_df['npa analysis']) #DELETE
+        #print(npa_df['npa analysis']['Core'].shape) #DELETE
+        #df.loc[0,'npa analysis'] = npa_df['npa analysis']
+        print(df.loc[0, 'npa charges'])
+        ###
 
         return filestream, df
 
-def add_pandas_fields(df, data, overwrite=True):
+def add_pandas_fields(df, data, multi_label=None, overwrite=True):
     '''
     Add fields and data to the DataFrame.  And overwrite=false method has
-    not been writen yet
+    not been written yet.  Added multi_label kwarg in case want to implement
+    grouping multiple fields under a multiindex structure in the future
     '''
+    if multi_label != None:
+        raise NotImplementedError('multi_label has not yet been implemented')
+    if overwrite == False:
+        raise NotImplementedError('overwrite == False has not yet been implemented')
+
+    print(data) #DELEE
     if isinstance(data, dict):
-        for field in data: df[field] = pandas.Series(data[field])
+        #for field in data: df[field] = pandas.Series(data[field])
+        for field in data: 
+            print(df.index) #DELETE
+            #tmp = df.assign(field=data[field])
+            df[field] = data[field]
+            print(df) #DELETE
+            #tmp = pandas.DataFrame({field : data[field]}, index=df.index)
+            #print(tmp) #DELETE
+            #df = df.add(tmp)
         return df
     elif isinstance(data[0], list):
-        for field in data: df[field[0]] = pandas.Series(field[1])
+        #for field in data: df[field[0]] = pandas.Series(field[1])
+        for field in data:
+            label, val = field[0], field[1]
+            df[label] = val
         return df
     
-    df[data[0]] = pandas.Series(data[1])
+    data_series = pandas.Series(data[1])
+    print(data_series) #DELETE
+    df[data[0]] = data_series
     return df
 
 def add_pandas_series(df, data, overwrite=True):
@@ -214,6 +250,20 @@ def add_pandas_series(df, data, overwrite=True):
     Add some kind of series data to the DataFrame.
     '''
     tmp_df = pandas.DataFrame(data)
+    #####--- Experimental multiindex addition
+    print(df); print(df.index.names) #DELETE
+    #tmp_df.index = [df.index[0] for _ in tmp_df.index]
+    multi_label = 'atom_info'
+    iterables = [[multi_label], [key for key in data]]
+    index = pandas.MultiIndex.from_product(iterables)
+    tmp_df = pandas.DataFrame(columns=index, index=df.index)
+    #tmp_df[df.index.names[0]] = [df.index[0] for _ in tmp_df.index]
+    #tmp_df.set_index(df.index.names[0], inplace=True)
+    print(tmp_df.index.names) #DELETE
+    print(tmp_df); print(tmp_df.ndim); #DELETE
+    df['atom_info'] = tmp_df
+    sys.exit() #DELETE
+    #####---
 
     for col in tmp_df.columns:
         series_df = pandas.DataFrame(tmp_df[col])
@@ -226,5 +276,6 @@ def add_pandas_series(df, data, overwrite=True):
         else:
             df = pandas.concat([df, series_df], axis=1)
         
+    sys.exit() #DELETE
     return df
 
