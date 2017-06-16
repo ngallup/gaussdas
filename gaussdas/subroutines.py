@@ -27,9 +27,9 @@ class Subroutines(object):
         self._keys = {}
         self._keys['Zero-point correction'] = self.thermo_chem
         self._keys['Charge = '] = self.atoms_charge_mult
-        #self._keys['N A T U R A L   A T O M I C   O R B I T A L   A N D'] = \
-        #    self.found_nbo_header
-        #self._keys['Atom  No    Charge         Core'] = self.npa
+        self._keys['N A T U R A L   A T O M I C   O R B I T A L   A N D'] = \
+            self.found_nbo_header
+        self._keys['Atom  No    Charge         Core'] = self.npa
         
         self._iteration = Iteration()
         
@@ -191,22 +191,12 @@ class Subroutines(object):
             overwrite=overwrite
         )
 
-        ### Multidimensional add
-        #data = {new_str : col_dict}
-        #npa_df = pandas.DataFrame(data)
-        iterables = [['npa analysis'], [key for key in col_dict]]
-        index = pandas.MultiIndex.from_product(iterables)
-        print(index) #DELETE
-        npa_df = pandas.DataFrame(index=range(self._iteration.natoms), columns=index)
-        for key in col_dict: 
-            npa_df['npa analysis'][key] = pandas.Series(col_dict[key])
-        print(npa_df) #DELETE
-        print(npa_df.ndim) #DELETE
-        #print(npa_df['npa analysis']) #DELETE
-        #print(npa_df['npa analysis']['Core'].shape) #DELETE
-        #df.loc[0,'npa analysis'] = npa_df['npa analysis']
-        print(df.loc[0, 'npa charges'])
-        ###
+        n_str = 'atom no.'
+        df = add_pandas_series(
+            df,
+            {n_str : col_dict['No']},
+            overwrite=overwrite
+        )
 
         return filestream, df
 
