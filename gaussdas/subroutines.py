@@ -247,24 +247,17 @@ def add_pandas_fields(df, data, multi_label=None, overwrite=True):
 
 def add_pandas_series(df, data, overwrite=True):
     '''
-    Add some kind of series data to the DataFrame.
+    Add some kind of series data to the DataFrame.  Method is currently
+    only suited to take in dicts because of the way the resulting data is
+    assigned to the final DataFrame.  This should be generalized to utilize
+    a temporary DataFrame to make the method more robust in the future.
     '''
     tmp_df = pandas.DataFrame(data)
-    #####--- Experimental multiindex addition
-    print(df); print(df.index.names) #DELETE
-    #tmp_df.index = [df.index[0] for _ in tmp_df.index]
-    multi_label = 'atom_info'
-    iterables = [[multi_label], [key for key in data]]
-    index = pandas.MultiIndex.from_product(iterables)
-    tmp_df = pandas.DataFrame(columns=index, index=df.index)
-    #tmp_df[df.index.names[0]] = [df.index[0] for _ in tmp_df.index]
-    #tmp_df.set_index(df.index.names[0], inplace=True)
-    print(tmp_df.index.names) #DELETE
-    print(tmp_df); print(tmp_df.ndim); #DELETE
-    df['atom_info'] = tmp_df
-    sys.exit() #DELETE
-    #####---
-
+    len1 = len(df)
+    len2 = len(tmp_df)
+    if len1 < len2:
+        df = df.reindex(df.index[0] for _ in range(len2))
+        
     for col in tmp_df.columns:
         series_df = pandas.DataFrame(tmp_df[col])
         if col in df.columns:
@@ -272,10 +265,12 @@ def add_pandas_series(df, data, overwrite=True):
             if overwrite == False:
                 print("DON'T OVERWRITE ME!!!!") #delete
                 continue
-            df[col] = series_df
+            #df[col] = series_df
+            df[col] = data[col]
         else:
-            df = pandas.concat([df, series_df], axis=1)
-        
-    sys.exit() #DELETE
+            #df = pandas.concat([df, series_df], axis=1)
+            #df[col] = series_df
+            df[col] = data[col]
+    
     return df
 
