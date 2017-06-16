@@ -31,6 +31,7 @@ class Subroutines(object):
             self.found_nbo_header
         self._keys['Atom  No    Charge         Core'] = self.npa
         self._keys['Alpha  occ. eigenvalues'] = self.homo_lumo
+        self._keys['Frequencies'] = self.frequencies
         
         self._iteration = Iteration()
         
@@ -217,6 +218,38 @@ class Subroutines(object):
         df = add_pandas_fields(
                 df, 
                 [homo, lumo, gap], 
+                overwrite=overwrite
+        )
+
+        return filestream, df
+
+    def frequencies(self, filestream, line, df, overwrite=True):
+        nfreqs = []
+        imag_freqs = 0
+        df_len = len(df)
+
+        # Want to terminate while loop at blank line
+        line_split = line.split()
+        while line_split:
+            if "Frequencies" in line_split:
+                for freq in line_split[2:]:
+                    if len(nfreqs) >= df_len:
+                        break
+
+                    nfreqs.append(np.float64(freq))
+                    if freq < 0:
+                        imag_freqs += 1
+            line_split = filestream.next().split()
+
+        df = add_pandas_series(
+                df, 
+                {'first_freqs': nfreqs}, 
+                overwrite=overwrite
+        )
+
+        df = add_pandas_fields(
+                df, 
+                [['nimag_freqs', imag_freqs]], 
                 overwrite=overwrite
         )
 
