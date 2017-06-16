@@ -30,6 +30,7 @@ class Subroutines(object):
         self._keys['N A T U R A L   A T O M I C   O R B I T A L   A N D'] = \
             self.found_nbo_header
         self._keys['Atom  No    Charge         Core'] = self.npa
+        self._keys['Alpha  occ. eigenvalues'] = self.homo_lumo
         
         self._iteration = Iteration()
         
@@ -191,6 +192,32 @@ class Subroutines(object):
             df, 
             {new_str : np.float64(col_dict['Charge'])}, 
             overwrite=overwrite
+        )
+
+        return filestream, df
+
+    def homo_lumo(self, filestream, line, df, overwrite=True):
+        homo = ['homo', 0]
+        lumo = ['lumo', 0]
+        gap = ['h-l gap', 0]
+
+        # OMO levels always come before UMOs
+        while 'Alpha  occ. eigenvalues' in line:
+            homo[1] = line.split()[-1]
+            line = filestream.next()
+
+        homo[1] = np.float64(homo[1])
+
+        # Now get the LUMO, which will be the first numerical value
+        lumo[1] = np.float64(line.split()[4])
+
+        # Calculate HOMO-LUMO gap
+        gap[1] = lumo[1] - homo[1]
+
+        df = add_pandas_fields(
+                df, 
+                [homo, lumo, gap], 
+                overwrite=overwrite
         )
 
         return filestream, df
