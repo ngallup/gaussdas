@@ -105,6 +105,7 @@ class Subroutines(object):
         series = {}
         series['atom list'] = []
         series['frozen'] = []
+        series['atom no.'] = []
     
         # Initial line will have charge and mult data
         elems = line.split()
@@ -127,6 +128,7 @@ class Subroutines(object):
             line_split = line.lstrip().rstrip().split(delimiter)
     
         fields['natoms'] = len(series['atom list'])
+        series['atom no.'] = range(1, fields['natoms']+1)
 
         self._iteration.natoms = fields['natoms']
     
@@ -188,13 +190,6 @@ class Subroutines(object):
         df = add_pandas_series(
             df, 
             {new_str : np.float64(col_dict['Charge'])}, 
-            overwrite=overwrite
-        )
-
-        n_str = 'atom no.'
-        df = add_pandas_series(
-            df,
-            {n_str : col_dict['No']},
             overwrite=overwrite
         )
 
