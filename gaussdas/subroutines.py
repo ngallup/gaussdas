@@ -34,7 +34,30 @@ class Subroutines(object):
         self._keys['Frequencies'] = self.frequencies
         
         self._iteration = Iteration()
-        
+
+        # Make sure there won't be any partial keyword collisions
+        self._check_keys()
+
+    def _check_keys(self):
+        '''
+        For making sure there aren't any partial string collisions that would
+        compromise the current keyword-mapping strategy
+        '''
+        key_list = [key for key in self._keys]
+        for key1 in key_list:
+            count = 0
+            for key2 in key_list:
+                smaller = min([key1, key2], key=len)
+                larger = max([key1, key2], key=len)
+                if smaller in larger: 
+                    count += 1
+                if count > 1:
+                    raise Warning(
+                        'There are partial string collisions in the naming ' + 
+                        'of the key mappings.  This could cause parsing ' + 
+                        'errors.  Keys: \n %s\n %s' % (smaller, larger)
+                    )
+
     def find_token_indices(self, line):
         pass
 
