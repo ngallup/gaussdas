@@ -32,16 +32,18 @@ class Subroutines(object):
         self._keys['Atom  No    Charge         Core'] = self.npa
         self._keys['Alpha  occ. eigenvalues'] = self.homo_lumo
         self._keys['Frequencies'] = self.frequencies
+        self._keys['termination'] = self.g_terminations
         
         self._iteration = Iteration()
 
         # Make sure there won't be any partial keyword collisions
-        self._check_keys()
+        #self._check_keys()
 
     def _check_keys(self):
         '''
         For making sure there aren't any partial string collisions that would
-        compromise the current keyword-mapping strategy
+        compromise the current keyword-mapping strategy.  Could be made more
+        efficient, but shouldn't be too much of a problem.
         '''
         key_list = [key for key in self._keys]
         for key1 in key_list:
@@ -56,13 +58,13 @@ class Subroutines(object):
                         'There are partial string collisions in the naming ' + 
                         'of the key mappings.  This could cause parsing ' + 
                         'errors.  Keys: \n %s\n %s' % (smaller, larger)
-                    )
+                    ) 
 
     def find_token_indices(self, line):
         pass
 
     def brute_search(self, infile, line, df):
-        '''
+        ''' 
         This is a fairly rudimentary algorithm just to get gaussdas up and
         running.  It is extremely inefficient at finding the keywords and
         the subsequent parsing schemes and needs to be replaced with an
@@ -274,6 +276,36 @@ class Subroutines(object):
                 df, 
                 [['nimag_freqs', imag_freqs]], 
                 overwrite=overwrite
+        )
+
+        return filestream, df
+
+    def g_terminations(self, filestream, line, df, overwrite=True):
+        '''
+        Tabulate termination status of the output file, recording the error
+        number if there is one
+        '''
+        fields = []
+        term = ['termination', None]
+        err = ['error no.', None]
+
+        if 'Normal' in line:
+            term[1] = 'normal'
+        elif 'Error' in line:
+            term[1] = 'error'
+            err_no = line.split()[-1]
+            err_no = err_no.rstrip('.')
+            err[1] = err_no
+            fields.append(err)
+
+            filestream.next() # Throw away next line
+
+        fields.append(term)
+
+        df = add_pandas_fields(
+            df,
+            fields,
+            overwrite=overwrite
         )
 
         return filestream, df
