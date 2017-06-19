@@ -33,6 +33,7 @@ class Subroutines(object):
         self._keys['Alpha  occ. eigenvalues'] = self.homo_lumo
         self._keys['Frequencies'] = self.frequencies
         self._keys['termination'] = self.g_terminations
+        self._keys['Standard basis'] = self.basis
         
         self._iteration = Iteration()
 
@@ -305,6 +306,22 @@ class Subroutines(object):
         df = add_pandas_fields(
             df,
             fields,
+            overwrite=overwrite
+        )
+
+        return filestream, df
+
+    def basis(self, filestream, line, df, overwrite=True):
+        '''
+        For recording the basis set used.  Not supporting multiple basis sets
+        yet
+        '''
+        basis = ['basis', None]
+        basis[1] = line.split()[2]
+
+        df = add_pandas_fields(
+            df,
+            [basis],
             overwrite=overwrite
         )
 
