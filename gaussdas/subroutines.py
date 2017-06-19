@@ -34,6 +34,7 @@ class Subroutines(object):
         self._keys['Frequencies'] = self.frequencies
         self._keys['termination'] = self.g_terminations
         self._keys['Standard basis'] = self.basis
+        self._keys['SCF Done'] = self.scf_functional
         
         self._iteration = Iteration()
 
@@ -322,6 +323,29 @@ class Subroutines(object):
         df = add_pandas_fields(
             df,
             [basis],
+            overwrite=overwrite
+        )
+
+        return filestream, df
+
+    def scf_functional(self, filestream, line, df, overwrite=True):
+        '''
+        For grabbing functional data.  Get SCF energies in line with iteration
+        number in the future.  Will currently overwrite previous functional,
+        as would be the case in composite methods
+        '''
+        func = ['functional', None]
+        
+        elems = line.split()
+        raw_func = elems[2]
+        energy = elems[4]
+
+        # Functional will always be of the form 'E(...)'
+        func[1] = raw_func[2:-1]
+        
+        df = add_pandas_fields(
+            df,
+            [func],
             overwrite=overwrite
         )
 
