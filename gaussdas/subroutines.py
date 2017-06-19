@@ -37,7 +37,7 @@ class Subroutines(object):
         self._iteration = Iteration()
 
         # Make sure there won't be any partial keyword collisions
-        #self._check_keys()
+        self._check_keys()
 
     def _check_keys(self):
         '''
@@ -46,19 +46,19 @@ class Subroutines(object):
         efficient, but shouldn't be too much of a problem.
         '''
         key_list = [key for key in self._keys]
-        for key1 in key_list:
+        for i in range(len(key_list)):
             count = 0
-            for key2 in key_list:
-                smaller = min([key1, key2], key=len)
-                larger = max([key1, key2], key=len)
-                if smaller in larger: 
+            for j in range(i+1, len(key_list)):
+                smaller = min(key_list[i], key_list[j])
+                larger = max(key_list[i], key_list[j])
+                if smaller in larger:
                     count += 1
-                if count > 1:
+                if count > 0:
                     raise Warning(
-                        'There are partial string collisions in the naming ' + 
-                        'of the key mappings.  This could cause parsing ' + 
+                        'There are partial string collisions in the naming ' +
+                        'of the key mappings.  This could cause parsing ' +
                         'errors.  Keys: \n %s\n %s' % (smaller, larger)
-                    ) 
+                    )
 
     def find_token_indices(self, line):
         pass
