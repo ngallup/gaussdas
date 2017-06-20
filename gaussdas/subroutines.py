@@ -35,6 +35,7 @@ class Subroutines(object):
         self._keys['termination'] = self.g_terminations
         self._keys['Standard basis'] = self.basis
         self._keys['SCF Done'] = self.scf_functional
+        self._keys['Standard orientation'] = self.coordinates
         
         self._iteration = Iteration()
 
@@ -347,6 +348,30 @@ class Subroutines(object):
             df,
             [func],
             overwrite=overwrite
+        )
+
+        return filestream, df
+
+    def coordinates(self, filestream, line, df, overwrite=True):
+        '''
+        Acquire the coordinates of the system on a rolling basis
+        '''
+        coords = []
+
+        # Need to throw away the header
+        for _ in range(4):
+            line = filestream.next()
+
+        for _ in range(self._iteration.natoms):
+            line = filestream.next()
+            line_split = line.split()
+            xyz = [float(line_split[i]) for i in [3,4,5]]
+            coords.append(xyz)
+
+        df = add_pandas_series(
+                df,
+                {'coords' : coords},
+                overwrite=overwrite
         )
 
         return filestream, df
